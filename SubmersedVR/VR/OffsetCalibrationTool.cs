@@ -1,5 +1,5 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 
 namespace SubmersedVR
 {
@@ -11,9 +11,9 @@ namespace SubmersedVR
     class OffsetCalibrationTool
     {
 
-        SteamVR_Action_Boolean holdToMoveAction;
-        SteamVR_Action_Boolean saveTransformAction;
-        Transform target;
+        readonly SteamVR_Action_Boolean holdToMoveAction;
+        readonly SteamVR_Action_Boolean saveTransformAction;
+        readonly Transform target;
         Transform parent;
 
         private OffsetCalibrationTool() { }
@@ -48,10 +48,7 @@ namespace SubmersedVR
                 }
                 _enabled = value;
             }
-            get
-            {
-                return _enabled;
-            }
+            get => _enabled;
         }
 
         // Unparent Target, so we can finetune the position
@@ -77,7 +74,7 @@ namespace SubmersedVR
         public void SaveTransform(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
         {
             // Print it out for putting it into the mod
-            var tool = global::Player.main.armsController.lastTool;
+            PlayerTool tool = global::Player.main.armsController.lastTool;
             string targetName = tool?.GetType()?.Name ?? "Hands";
             string offset = new TransformOffset(target).SwitchString(targetName);
             Mod.logger.LogInfo(offset);

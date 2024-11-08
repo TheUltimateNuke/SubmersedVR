@@ -1,6 +1,6 @@
+using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
-using HarmonyLib;
 
 
 
@@ -36,7 +36,7 @@ namespace SubmersedVR
         static void Postfix(uGUI_SceneLoading __instance)
         {
             Image loadingArtwork = __instance.loadingBackground.transform.Find("LoadingArtwork").GetComponent<Image>();
-            Vector2 midCenter = new Vector2(0.5f, 0.5f);
+            Vector2 midCenter = new(0.5f, 0.5f);
             uGUI_Logo logo = __instance.loadingBackground.GetComponentInChildren<uGUI_Logo>();
             if (loadingArtwork != null)
             {

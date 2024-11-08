@@ -41,9 +41,11 @@ namespace SubmersedVR
                 parentConstraint.RemoveSource(0);
             }
 
-            var cs = new ConstraintSource();
-            cs.sourceTransform = target;
-            cs.weight = 1.0f;
+            ConstraintSource cs = new()
+            {
+                sourceTransform = target,
+                weight = 1.0f
+            };
             parentConstraint.AddSource(cs);
             parentConstraint.SetTranslationOffset(0, translationOffset);
             parentConstraint.SetRotationOffset(0, Vector3.zero);

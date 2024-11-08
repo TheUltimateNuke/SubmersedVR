@@ -1,17 +1,16 @@
 ﻿using System.Text;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 // This uses the SteamVR Keyboard overlay to enable text input on text fields in the game.
 namespace SubmersedVR
 {
     extern alias SteamVRRef;
-
+    using HarmonyLib;
+    using SteamVRRef.Valve.VR;
     using System;
     using System.Collections.Generic;
     using System.Reflection.Emit;
-    using HarmonyLib;
-    using SteamVRRef.Valve.VR;
 
     public class VirtualKeyboard : MonoBehaviour
     {
@@ -27,7 +26,7 @@ namespace SubmersedVR
 
         private void OnKeyboardClosed(VREvent_t evt)
         {
-            var textBuilder = new StringBuilder(256);
+            StringBuilder textBuilder = new(256);
             int caretPosition = (int)SteamVR.instance.overlay.GetKeyboardText(textBuilder, 256);
             string text = textBuilder.ToString();
 
@@ -80,7 +79,7 @@ namespace SubmersedVR
         [HarmonyPostfix]
         public static void Postfix()
         {
-            var keyboard = new GameObject(nameof(VirtualKeyboard)).AddComponent<VirtualKeyboard>();
+            VirtualKeyboard keyboard = new GameObject(nameof(VirtualKeyboard)).AddComponent<VirtualKeyboard>();
             UnityEngine.Object.DontDestroyOnLoad(keyboard.gameObject);
         }
     }
@@ -111,10 +110,7 @@ namespace SubmersedVR
     {
         public static bool Prefix(BeaconLabel __instance)
         {
-            VirtualKeyboard.OpenKeyboardWithText(__instance.labelName, __instance.stringBeaconLabel, (label) =>
-            {
-                __instance.SetLabel(label);
-            });
+            VirtualKeyboard.OpenKeyboardWithText(__instance.labelName, __instance.stringBeaconLabel, __instance.SetLabel);
             return false;
         }
     }
@@ -125,14 +121,14 @@ namespace SubmersedVR
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false, new CodeMatch[] {
-                new CodeMatch(OpCodes.Ldarg_0),
-                new CodeMatch(OpCodes.Ldfld),
-                new CodeMatch(ci => ci.Calls(typeof(TMP_InputField).GetMethod(nameof(TMP_InputField.ActivateInputField)))),
-                new CodeMatch(OpCodes.Ldarg_0),
-                new CodeMatch(OpCodes.Ldfld),
-                new CodeMatch(ci => ci.Calls(typeof(uGUI_InputField).GetMethod(nameof(uGUI_InputField.SelectAllText))))
-            }).ThrowIfNotMatch("Could not find target").RemoveInstructions(6).InstructionEnumeration();
+            return new CodeMatcher(instructions).MatchForward(false, [
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldfld),
+                new(ci => ci.Calls(typeof(TMP_InputField).GetMethod(nameof(TMP_InputField.ActivateInputField)))),
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldfld),
+                new(ci => ci.Calls(typeof(uGUI_InputField).GetMethod(nameof(uGUI_InputField.SelectAllText))))
+            ]).ThrowIfNotMatch("Could not find target").RemoveInstructions(6).InstructionEnumeration();
         }
     }
 

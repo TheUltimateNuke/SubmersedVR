@@ -1,8 +1,7 @@
-using System;
+using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using HarmonyLib;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -12,7 +11,7 @@ namespace SubmersedVR
     // This replaces the main camera transform in `Targeting` with the event camera from `VRCameraRig`
     // TODO: Rewrite with CodeMatcher
     [HarmonyPatch(typeof(Targeting), nameof(Targeting.GetTarget))]
-    [HarmonyPatch(new Type[] { typeof(float), typeof(GameObject), typeof(float) }, new ArgumentType[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out })]
+    [HarmonyPatch([typeof(float), typeof(GameObject), typeof(float)], [ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out])]
     public static class WorldTargetingWithController
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -47,12 +46,9 @@ namespace SubmersedVR
             foreach (CodeInstruction ins in instructions)
             {
                 // Instead of the call to the enabled property we just push 0/false on to the stack to skip the if
-                if (ins.Calls(AccessTools.DeclaredPropertyGetter(typeof(XRSettings), nameof(XRSettings.enabled))))
-                {
-                    yield return new CodeInstruction(OpCodes.Ldc_I4_0);
-                }
-                else
-                    yield return ins;
+                yield return ins.Calls(AccessTools.DeclaredPropertyGetter(typeof(XRSettings), nameof(XRSettings.enabled)))
+                    ? new CodeInstruction(OpCodes.Ldc_I4_0)
+                    : ins;
             }
         }
     }
@@ -63,13 +59,13 @@ namespace SubmersedVR
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var desiredIconField = AccessTools.Field(typeof(HandReticle), nameof(HandReticle.desiredIconType));
-            return new CodeMatcher(instructions).MatchForward(false, new CodeMatch[] {
+            FieldInfo desiredIconField = AccessTools.Field(typeof(HandReticle), nameof(HandReticle.desiredIconType));
+            return new CodeMatcher(instructions).MatchForward(false, [
                 // /* 0x0012B387 17           */ IL_015F: ldc.i4.1
                 // /* 0x0012B388 7DB5320004   */ IL_0160: stfld     valuetype HandReticle/IconType HandReticle::desiredIconType
-                new CodeMatch(OpCodes.Ldc_I4_1), // Store 1
-                new CodeMatch(opc => opc.StoresField(desiredIconField)),
-            }).SetOpcodeAndAdvance(OpCodes.Ldc_I4_0).InstructionEnumeration(); // Replace by 0
+                new(OpCodes.Ldc_I4_1), // Store 1
+                new(opc => opc.StoresField(desiredIconField)),
+            ]).SetOpcodeAndAdvance(OpCodes.Ldc_I4_0).InstructionEnumeration(); // Replace by 0
         }
     }
 

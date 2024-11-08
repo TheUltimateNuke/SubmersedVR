@@ -1,6 +1,6 @@
-﻿using UnityEngine.UI;
-using HarmonyLib;
+﻿using HarmonyLib;
 using TMPro;
+using UnityEngine.UI;
 
 // Taken from https://github.com/IWhoI/SubnauticaVREnhancements/blob/8a7bccb3c88292f245d456af4f23acfb79e07c7f/VREnhancements/AdditionalVROptions.cs
 /*
@@ -45,10 +45,7 @@ static class IGM_Awake_Patch
             recenterVRButton.GetComponentInChildren<TextMeshProUGUI>().SetText("Recenter VR");
             recenterVRButton.onClick.RemoveAllListeners();//remove cloned listeners
             //add new listener
-            recenterVRButton.onClick.AddListener(delegate ()
-            {
-                VRUtil.Recenter();
-            });
+            recenterVRButton.onClick.AddListener(VRUtil.Recenter);
 
         }
     }

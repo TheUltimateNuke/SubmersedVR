@@ -1,4 +1,3 @@
-using System;
 using HarmonyLib;
 using UnityEngine;
 
@@ -6,7 +5,8 @@ namespace SubmersedVR
 {
     extern alias SteamVRActions;
     extern alias SteamVRRef;
-    using SteamVRActions.Valve.VR;
+
+    using System;
     using System.Collections.Generic;
     using System.Reflection.Emit;
 
@@ -44,7 +44,7 @@ namespace SubmersedVR
         {
             if (onLaserPointer)
             {
-                SetupHandReticleLaserPointer(uiCamera, rightControllerUI);
+                SetupHandReticleLaserPointer(uiCamera);
             }
             else
             {
@@ -55,16 +55,26 @@ namespace SubmersedVR
         public static void SetupHandReticleOnHand(Camera uiCamera, Transform rightControllerUI)
         {
             // Steal Reticle and attach to the right hand
-            var handReticle = HandReticle.main.gameObject.WithParent(rightControllerUI.transform);
+            GameObject handReticle = HandReticle.main.gameObject.WithParent(rightControllerUI.transform);
             handReticle.GetOrAddComponent<Canvas>().worldCamera = uiCamera;
             handReticle.transform.localEulerAngles = new Vector3(90, 0, 0);
             handReticle.transform.localPosition = new Vector3(0, 0, 0.05f);
             handReticle.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
         }
 
+        public static void SetupHandReticleLaserPointer(Camera uiCamera)
+        {
+            GameObject handReticle = HandReticle.main.gameObject.WithParent(VRCameraRig.instance.laserPointerUI.pointerDot.transform);
+            handReticle.transform.LookAt(uiCamera.transform.position);
+            handReticle.transform.localRotation = Quaternion.Euler(40, 0, 0);
+            handReticle.transform.localPosition = new Vector3(0, -5, VRCameraRig.instance.laserPointerUI.pointerDot.transform.localPosition.z);//new Vector3(0, 0, 0.05f);
+            handReticle.transform.localScale = VRCameraRig.instance.laserPointerUI.pointerDot.transform.localScale * 2;//new Vector3(0.001f, 0.001f, 0.001f);
+        }
+
+        [Obsolete("Use the SetupHandReticleLaserPointer method without rightControllerUI parameter")]
         public static void SetupHandReticleLaserPointer(Camera uiCamera, Transform rightControllerUI)
         {
-            var handReticle = HandReticle.main.gameObject.WithParent(VRCameraRig.instance.laserPointerUI.pointerDot.transform);
+            GameObject handReticle = HandReticle.main.gameObject.WithParent(VRCameraRig.instance.laserPointerUI.pointerDot.transform);
             handReticle.transform.LookAt(uiCamera.transform.position);
             handReticle.transform.localRotation = Quaternion.Euler(40, 0, 0);
             handReticle.transform.localPosition = new Vector3(0, -5, VRCameraRig.instance.laserPointerUI.pointerDot.transform.localPosition.z);//new Vector3(0, 0, 0.05f);
@@ -73,7 +83,7 @@ namespace SubmersedVR
 
         public static void OnHandReticleSettingChanged(bool onLaserPointer)
         {
-            var rig = VRCameraRig.instance;
+            VRCameraRig rig = VRCameraRig.instance;
             if (!rig)
             {
                 return;
@@ -99,10 +109,10 @@ namespace SubmersedVR
 
             if (staticHudCanvas == null)
             {
-                var uiRig = VRCameraRig.instance.uiRig.transform;
-                var go = new GameObject("StaticHUDCanvas").WithParent(uiRig);
+                Transform uiRig = VRCameraRig.instance.uiRig.transform;
+                GameObject go = new GameObject("StaticHUDCanvas").WithParent(uiRig);
                 staticHudCanvas = go.CreateWorldCanvas();
-                var rt = go.GetComponent<RectTransform>();
+                RectTransform rt = go.GetComponent<RectTransform>();
                 go.transform.localScale = screenCanvas.localScale;
                 rt.sizeDelta = screenCanvas.GetComponent<RectTransform>().sizeDelta;
                 rt.anchoredPosition = screenCanvas.GetComponent<RectTransform>().anchoredPosition;
@@ -120,7 +130,7 @@ namespace SubmersedVR
 
             WristHud.Setup();
 
-            var compo = screenCanvas.GetComponent<uGUI_CanvasScaler>();
+            uGUI_CanvasScaler compo = screenCanvas.GetComponent<uGUI_CanvasScaler>();
             if (compo != null)
             {
                 compo.SetDirty();
@@ -130,7 +140,7 @@ namespace SubmersedVR
 
         public static void OnEnterVehicle()
         {
-            var player = Player.main;
+            Player player = Player.main;
             if (player != null)
             {
                 hud.SetParent(staticHudCanvas.transform, false);
@@ -148,7 +158,7 @@ namespace SubmersedVR
 
     static class WristHud
     {
-        private static TransformOffset wristOffset = new TransformOffset(new Vector3(-0.079f, 0.148f, -0.158f), new Vector3(350.494f, 88.400f, 244.161f));
+        private static readonly TransformOffset wristOffset = new(new Vector3(-0.079f, 0.148f, -0.158f), new Vector3(350.494f, 88.400f, 244.161f));
         private static GameObject wristTarget;
         private static Canvas canvas;
         private static CanvasGroup canvasGroup;
@@ -175,14 +185,14 @@ namespace SubmersedVR
         // Create Wrist World Canvas
         public static void Setup()
         {
-            var rig = VRCameraRig.instance;
+            VRCameraRig rig = VRCameraRig.instance;
             uiCamera = rig.uiCamera.transform;
             hudContent = uGUI.main.hud.transform.GetChild(0);
 
             if (wristTarget == null)
             {
                 wristTarget = new GameObject("WristTarget").WithParent(rig.leftControllerUI).ResetTransform();
-                var wristCanvasGo = new GameObject("WristCanvas").WithParent(wristTarget).ResetTransform();
+                GameObject wristCanvasGo = new GameObject("WristCanvas").WithParent(wristTarget).ResetTransform();
                 canvas = wristCanvasGo.CreateWorldCanvas();
                 canvasGroup = wristCanvasGo.AddComponent<CanvasGroup>();
                 wristCanvasGo.transform.localScale = new Vector3(0.0004f, 0.0004f, 0.0004f);
@@ -203,10 +213,10 @@ namespace SubmersedVR
             {
                 return cachedIndexTip;
             }
-            var animator = Player.main?.playerAnimator;
+            Animator animator = Player.main?.playerAnimator;
             if (animator is Animator anim)
             {
-                var tip = anim.transform.Find("export_skeleton/head_rig/neck/chest/clav_R/clav_R_aim/shoulder_R/hand_R/hand_R_point_base/hand_R_point_mid/hand_R_point_tip_rig");
+                Transform tip = anim.transform.Find("export_skeleton/head_rig/neck/chest/clav_R/clav_R_aim/shoulder_R/hand_R/hand_R_point_base/hand_R_point_mid/hand_R_point_tip_rig");
                 if (tip != null)
                 {
                     cachedIndexTip = tip;
@@ -228,9 +238,9 @@ namespace SubmersedVR
             {
                 return;
             }
-            var camPos = uiCamera.transform.position;
-            var worldRigPos = VRCameraRig.instance.rigParentTarget.position;
-            var wristPos = wristTarget.transform.position;
+            Vector3 camPos = uiCamera.transform.position;
+            Vector3 worldRigPos = VRCameraRig.instance.rigParentTarget.position;
+            Vector3 wristPos = wristTarget.transform.position;
 
             Vector3 wristDir = wristTarget.transform.TransformDirection(Vector3.forward);
             Vector3 toCam = (wristPos - camPos).normalized;
@@ -242,8 +252,8 @@ namespace SubmersedVR
 
             if (isFacingCamera && GetIndexFingerTip() is Transform indexTip)
             {
-                var uiIndexPos = indexTip.position - worldRigPos;
-                var wristDistance = Vector3.Distance(uiIndexPos, wristPos);
+                Vector3 uiIndexPos = indexTip.position - worldRigPos;
+                float wristDistance = Vector3.Distance(uiIndexPos, wristPos);
                 // DebugPanel.Show($"wristDistance = {wristDistance} <= uiPos{uiIndexPos}, {wristPos}");
                 const float threshold = 0.1f;
                 touchingWrist = wristDistance < threshold;
@@ -263,7 +273,7 @@ namespace SubmersedVR
                 Setup();
             }
 
-            var barsPanel = uGUI.main.barsPanel;
+            GameObject barsPanel = uGUI.main.barsPanel;
             if (isOn)
             {
                 // Move to wrist
@@ -294,7 +304,7 @@ namespace SubmersedVR
     {
         public static void Postfix(Vehicle __instance)
         {
-            if (__instance is SeaMoth || __instance is Exosuit)
+            if (__instance is SeaMoth or Exosuit)
             {
                 VRHud.OnEnterVehicle();
             }
@@ -306,7 +316,7 @@ namespace SubmersedVR
     {
         public static void Postfix(Vehicle __instance)
         {
-            if (__instance is SeaMoth || __instance is Exosuit)
+            if (__instance is SeaMoth or Exosuit)
             {
                 VRHud.OnExitVehicle();
             }
@@ -360,15 +370,15 @@ namespace SubmersedVR
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var m = new CodeMatcher(instructions);
-            m.MatchForward(true, new CodeMatch[] {
+            CodeMatcher m = new(instructions);
+            m.MatchForward(true, [
                 new CodeMatch(OpCodes.Stloc_3),
-            }).Advance(1).Insert(new CodeInstruction[] {
+            ]).Advance(1).Insert([
                 new CodeInstruction(OpCodes.Ldloc_3),
                 CodeInstruction.LoadField(typeof(WristHud), nameof(WristHud.isHudOn)),
                 new CodeInstruction(OpCodes.And),
                 new CodeInstruction(OpCodes.Stloc_3),
-            });
+            ]);
             return m.InstructionEnumeration();
         }
     }
@@ -378,15 +388,15 @@ namespace SubmersedVR
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var m = new CodeMatcher(instructions);
-            m.MatchForward(true, new CodeMatch[] {
-                new CodeMatch(OpCodes.Stloc_3),
-            }).Advance(1).Insert(new CodeInstruction[] {
-                new CodeInstruction(OpCodes.Ldloc_3),
+            CodeMatcher m = new(instructions);
+            m.MatchForward(true, [
+                new(OpCodes.Stloc_3),
+            ]).Advance(1).Insert([
+                new(OpCodes.Ldloc_3),
                 CodeInstruction.LoadField(typeof(WristHud), nameof(WristHud.isHudOn)),
-                new CodeInstruction(OpCodes.And),
-                new CodeInstruction(OpCodes.Stloc_3),
-            });
+                new(OpCodes.And),
+                new(OpCodes.Stloc_3),
+            ]);
             return m.InstructionEnumeration();
         }
     }

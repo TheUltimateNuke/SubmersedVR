@@ -1,10 +1,9 @@
-﻿using UnityEngine.EventSystems;
-using UnityEngine;
-using HarmonyLib;
-using UnityEngine.XR;
+﻿using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace SubmersedVR
 {
@@ -22,7 +21,7 @@ namespace SubmersedVR
                 return;
             }
 
-            var eventCamera = VRCameraRig.instance.UIControllerCamera;
+            Camera eventCamera = VRCameraRig.instance.UIControllerCamera;
             __result = new Vector2(eventCamera.pixelWidth / 2, eventCamera.pixelHeight / 2);
         }
     }
@@ -69,13 +68,13 @@ namespace SubmersedVR
 
         public static void Postfix(FPSInputModule __instance, PointerEventData leftData)
         {
-            GetPointerData(__instance, -3, out var data2, create: true);
+            GetPointerData(__instance, -3, out PointerEventData data2, create: true);
             __instance.CopyFromTo(leftData, data2);
             data2.button = PointerEventData.InputButton.Middle;
             if (GameInput.GetPrimaryDevice() == GameInput.Device.Controller)
             {
-                var buttonDown = GameInput.GetButtonDown(uGUI.button2);
-                var buttonUp = GameInput.GetButtonUp(uGUI.button2);
+                bool buttonDown = GameInput.GetButtonDown(uGUI.button2);
+                bool buttonUp = GameInput.GetButtonUp(uGUI.button2);
                 if (__instance.m_MouseState.GetButtonState(PointerEventData.InputButton.Middle).eventData.buttonState == PointerEventData.FramePressState.NotChanged)
                 {
                     __instance.m_MouseState.SetButtonState(PointerEventData.InputButton.Middle, FPSInputModule.ConstructPressState(buttonDown, buttonUp), data2);
@@ -94,15 +93,15 @@ namespace SubmersedVR
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var getter = AccessTools.DeclaredPropertyGetter(typeof(BaseInputModule), "eventSystem");
+            System.Reflection.MethodInfo getter = AccessTools.DeclaredPropertyGetter(typeof(BaseInputModule), "eventSystem");
             // Snippet to print each instruction before removal
             // instructions.ForEach(ins => {
             // Mod.logger.LogInfo($"   : {ins}");
             // });
-            var m = new CodeMatcher(instructions);
-            var mc = m.Clone();
+            CodeMatcher m = new(instructions);
+            CodeMatcher mc = m.Clone();
 
-            var patched = m.MatchForward(false, new CodeMatch[] {
+            CodeMatcher patched = m.MatchForward(false, [
                 /* Match and remove the following code from FPSInputModule.OnUpdate():
                 if (!base.eventSystem.isFocused || TouchScreenKeyboardManager.visible)
                 {
@@ -116,10 +115,10 @@ namespace SubmersedVR
                 // /* 0x00129145 287B16000A   */ IL_000D: call      bool [Unity.TextMeshPro]TouchScreenKeyboardManager::get_visible()
                 // /* 0x0012914A 2C01         */ IL_0012: brfalse.s IL_0015
                 // /* 0x0012914C 2A           */ IL_0014: ret
-                new CodeMatch(OpCodes.Ldarg_0),
-                new CodeMatch(OpCodes.Call),
-                new CodeMatch(OpCodes.Callvirt),
-            }).ThrowIfInvalid("Could not find target").RemoveInstructions(7);
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Call),
+                new(OpCodes.Callvirt),
+            ]).ThrowIfInvalid("Could not find target").RemoveInstructions(7);
 
             return patched.InstructionEnumeration();
         }

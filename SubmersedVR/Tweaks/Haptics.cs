@@ -1,16 +1,15 @@
 using HarmonyLib;
+using System.Collections;
 using UnityEngine;
-using System;
 using UnityEngine.UI;
 using UWE;
-using System.Collections;
 
 namespace SubmersedVR
 {
     extern alias SteamVRActions;
     extern alias SteamVRRef;
-    using SteamVRRef.Valve.VR;
     using SteamVRActions.Valve.VR;
+    using SteamVRRef.Valve.VR;
 
     static class HapticsVR
     {
@@ -697,12 +696,14 @@ namespace SubmersedVR
     {
         public static void Postfix(StasisRifle __instance)
         {
-            if (__instance.isCharging) {
+            if (__instance.isCharging)
+            {
                 // chargeAmount goes fro, 0.0 to 5.0
                 float charge = __instance.chargeAmount;
                 float freq = charge * 10.0f;
-                float amp = charge * 1.0f/10.0f; // 0.0 to 0.5
-                if (charge >= 4.9f) {
+                float amp = charge * 1.0f / 10.0f; // 0.0 to 0.5
+                if (charge >= 4.9f)
+                {
                     amp = 0.0f;
                 }
                 Mod.logger.LogInfo($"StasisRifle.Charge freq: {freq}, amp: {amp}");
@@ -900,7 +901,7 @@ namespace SubmersedVR
     }
 
     [HarmonyPatch(typeof(uGUI_ItemIcon), nameof(uGUI_ItemIcon.OnPointerEnter))]
-    [HarmonyPatch(new Type[] { })]
+    [HarmonyPatch([])]
     class ItemIconHaptics
     {
         public static void Postfix(uGUI_ItemIcon __instance)

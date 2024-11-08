@@ -1,14 +1,14 @@
-using System;
 using HarmonyLib;
+using System;
 using UnityEngine;
 
 #pragma warning disable Harmony003
 namespace SubmersedVR
 {
-    extern alias SteamVRRef;
     extern alias SteamVRActions;
-    using SteamVRRef.Valve.VR;
+    extern alias SteamVRRef;
     using SteamVRActions.Valve.VR;
+    using SteamVRRef.Valve.VR;
     using System.Collections.Generic;
     using System.Reflection;
 
@@ -33,11 +33,7 @@ namespace SubmersedVR
 
         public static Vector2 GetScrollDelta()
         {
-            if (!IsSteamVrReady || InputLocked)
-            {
-                return Vector2.zero;
-            }
-            return SteamVR_Actions.subnautica.UIScroll.GetAxis(SteamVR_Input_Sources.Any);
+            return !IsSteamVrReady || InputLocked ? Vector2.zero : SteamVR_Actions.subnautica.UIScroll.GetAxis(SteamVR_Input_Sources.Any);
         }
     }
 
@@ -272,14 +268,7 @@ namespace SubmersedVR
                     else
                     {
                         vec = SteamVR_Actions.subnautica.Look.GetAxis(SteamVR_Input_Sources.Any);
-                        if (Settings.InvertYAxis)
-                        {
-                            value = vec.y < 0.0f ? -vec.y : 0.0f;
-                        }
-                        else
-                        {
-                            value = vec.y > 0.0f ? vec.y : 0.0f;
-                        }
+                        value = Settings.InvertYAxis ? vec.y < 0.0f ? -vec.y : 0.0f : vec.y > 0.0f ? vec.y : 0.0f;
                     }
                     break;
                 case GameInput.Button.LookDown:
@@ -291,14 +280,7 @@ namespace SubmersedVR
                     else
                     {
                         vec = SteamVR_Actions.subnautica.Look.GetAxis(SteamVR_Input_Sources.Any);
-                        if (Settings.InvertYAxis)
-                        {
-                            value = vec.y > 0.0f ? vec.y : 0.0f;
-                        }
-                        else
-                        {
-                            value = vec.y < 0.0f ? -vec.y : 0.0f;
-                        }
+                        value = Settings.InvertYAxis ? vec.y > 0.0f ? vec.y : 0.0f : vec.y < 0.0f ? -vec.y : 0.0f;
                     }
                     break;
                 case GameInput.Button.LookRight:
@@ -362,7 +344,7 @@ namespace SubmersedVR
                 return;
             }
 
-            foreach (var action in SteamVR_Input.actionsBoolean)
+            foreach (Valve.VR.SteamVR_Action_Boolean action in SteamVR_Input.actionsBoolean)
             {
                 if (action.GetStateDown(SteamVR_Input_Sources.Any))
                 {
@@ -415,7 +397,7 @@ namespace SubmersedVR
     {
         public static MethodBase TargetMethod()
         {
-            var type = typeof(uGUI_CraftingMenu);
+            Type type = typeof(uGUI_CraftingMenu);
             return AccessTools.FirstMethod(type, method => method.Name.Contains("OnPointerClick"));
         }
 
@@ -588,14 +570,14 @@ namespace SubmersedVR
 
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var m = new CodeMatcher(instructions);
-            var pos = m.MatchForward(false, new CodeMatch[] {
+            CodeMatcher m = new(instructions);
+            int pos = m.MatchForward(false, [
                 // new CodeMatch(OpCodes.Stloc_0)
-                new CodeMatch(ci => ci.Calls(AccessTools.DeclaredMethod(typeof(Vector3), nameof(Vector3.Dot))))
-            }).Pos;
-            m.Start().RemoveInstructionsInRange(0, pos).Insert(new CodeInstruction[] {
+                new(ci => ci.Calls(AccessTools.DeclaredMethod(typeof(Vector3), nameof(Vector3.Dot))))
+            ]).Pos;
+            m.Start().RemoveInstructionsInRange(0, pos).Insert([
                 CodeInstruction.Call(typeof(DontScaleToolTips), nameof(DontScaleToolTips.GetTooltipScaler)),
-            });
+            ]);
             return m.InstructionEnumeration();
         }
     }

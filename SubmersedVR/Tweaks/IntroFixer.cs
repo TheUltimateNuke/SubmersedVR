@@ -1,6 +1,5 @@
-using System.IO;
-using UnityEngine;
 using HarmonyLib;
+using UnityEngine;
 
 namespace SubmersedVR
 {

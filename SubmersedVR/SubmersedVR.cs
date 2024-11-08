@@ -2,8 +2,8 @@
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
-using UnityEngine.XR;
 using System.Linq;
+using UnityEngine.XR;
 
 namespace SubmersedVR
 {
@@ -62,7 +62,7 @@ namespace SubmersedVR
             }
 
             logger = Logger;
-            Harmony harmony = new Harmony(PluginInfo.PLUGIN_GUID);
+            Harmony harmony = new(PluginInfo.PLUGIN_GUID);
             harmony.PatchAll();
             Logger.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded and patches applied!");
             VROptions.gazeBasedCursor = true;

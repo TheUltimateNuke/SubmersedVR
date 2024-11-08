@@ -1,14 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
 
 namespace Valve.VR
 {
     public class ShaderLoader
     {
         private static bool initialized = false;
-        private static Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
+        private static readonly Dictionary<string, Shader> shaders = [];
 
         public static bool Initialize(string assetBundlePath)
         {
@@ -33,9 +31,9 @@ namespace Valve.VR
 
         private static bool loadAllShadersFromAssetBundle(string assetBundlePath)
         {
-            var loadedAssetBundle = AssetBundle.LoadFromFile(assetBundlePath);
+            AssetBundle loadedAssetBundle = AssetBundle.LoadFromFile(assetBundlePath);
             Debug.Log("loadAllShadersFromAssetBundle called.");
-            foreach (var a in loadedAssetBundle.LoadAllAssets())
+            foreach (Object a in loadedAssetBundle.LoadAllAssets())
             {
                 Debug.Log($"{a.name}");
                 shaders[a.name] = a as Shader;

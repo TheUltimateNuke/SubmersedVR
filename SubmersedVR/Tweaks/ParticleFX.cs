@@ -1,11 +1,4 @@
-﻿using HarmonyLib;
-using UnityEngine;
-using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections;
-using FMODUnity;
-
-namespace SubmersedVR
+﻿namespace SubmersedVR
 {
     class ParticleFX
     {

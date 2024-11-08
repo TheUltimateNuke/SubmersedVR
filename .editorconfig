@@ -1,0 +1,10 @@
+﻿[*.{cs,vb}]
+
+# IDE0130: Namespace does not match folder structure
+dotnet_style_namespace_match_folder = false
+
+# IDE0300: Simplify collection initialization
+dotnet_style_prefer_collection_expression = when_types_exactly_match
+
+# IDE0031: Use null propagation
+dotnet_style_null_propagation = false

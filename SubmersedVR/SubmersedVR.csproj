@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -10,11 +10,11 @@
     <!-- NOTE: Preprocessor directive SV = SubmersedVR, BZ = Below Zero -->
     <DefineConstants>SV</DefineConstants>
     <!-- NOTE: Change this to your own directoy when building -->
-    <SubnauticaDir>C:\Users\Okabintaro\scoop\apps\steam\current\steamapps\common\Subnautica</SubnauticaDir>
+    <SubnauticaDir>D:\SteamLibrary\steamapps\common\Subnautica</SubnauticaDir>
     <!-- <SubnauticaDir>c:\Program Files (x86)\Steam\steamapps\common\Subnautica</SubnauticaDir> -->
     <NoWarn>$(NoWarn);CS0436</NoWarn>
     <!-- <BuildDir>Build</BuildDir>-->
-    <BuildDir>C:\Users\Okabintaro\scoop\apps\steam\current\steamapps\common\Subnautica</BuildDir>
+    <BuildDir>D:\SteamLibrary\steamapps\common\Subnautica</BuildDir>
     <!-- <BuildDir>c:\Program Files (x86)\Steam\steamapps\common\Subnautica</BuildDir> -->
   </PropertyGroup>
 
@@ -66,7 +66,7 @@
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
     <ItemGroup>
-      <InstallPlugin Include="$(MSBuildProjectDirectory)\bin\Debug\$(TargetFramework)\$(AssemblyName).dll" />
+      <InstallPlugin Include="$(TargetPath)" />
       <PlguindsFolder Include="$(BuildDir)\BepInEx\plugins" />
       <StreamingFolder Include="$(BuildDir)\Subnautica_Data\StreamingAssets" />
       <BindingsFolder Include="$(BuildDir)\Subnautica_Data\StreamingAssets\SteamVR" />

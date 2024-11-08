@@ -1,6 +1,6 @@
 using HarmonyLib;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 namespace SubmersedVR
 {
@@ -14,7 +14,7 @@ namespace SubmersedVR
 
         void Start()
         {
-            var prefabMessage = ErrorMessage.main.prefabMessage;
+            GameObject prefabMessage = ErrorMessage.main.prefabMessage;
             GameObject obj = Object.Instantiate(prefabMessage);
             entry = obj.GetComponent<TextMeshProUGUI>();
             entry.rectTransform.SetParent(ErrorMessage.main.messageCanvas, false);

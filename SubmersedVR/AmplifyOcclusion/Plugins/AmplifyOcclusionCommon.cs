@@ -3,7 +3,6 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Profiling;
 using Valve.VR;
 
 #if UNITY_EDITOR
@@ -16,8 +15,8 @@ namespace AmplifyOcclusion
     public static class AmplifyOcclusionCommon
     {
         public static readonly int PerPixelNormalSourceCount = 4;
-        public static readonly float[] m_temporalRotations = { 60.0f, 300.0f, 180.0f, 240.0f, 120.0f, 0.0f };
-        public static readonly float[] m_spatialOffsets = { 0.0f, 0.5f, 0.25f, 0.75f };
+        public static readonly float[] m_temporalRotations = [60.0f, 300.0f, 180.0f, 240.0f, 120.0f, 0.0f];
+        public static readonly float[] m_spatialOffsets = [0.0f, 0.5f, 0.25f, 0.75f];
 
         public static void CommandBuffer_TemporalFilterDirectionsOffsets(CommandBuffer cb, uint aSampleStep)
         {
@@ -30,7 +29,7 @@ namespace AmplifyOcclusion
 
         public static Material CreateMaterialWithShaderName(string aShaderName, bool aThroughErrorMsg)
         {
-            var shader = ShaderLoader.GetShader(aShaderName);
+            Shader shader = ShaderLoader.GetShader(aShaderName);
 
             if (shader == null)
             {
@@ -77,13 +76,15 @@ namespace AmplifyOcclusion
             width = Mathf.Clamp(width, 1, 65536);
             height = Mathf.Clamp(height, 1, 65536);
 
-            RenderTexture rt = new RenderTexture(width, height, 0, format, readWrite) { hideFlags = HideFlags.DontSave };
-
-            rt.name = name;
-            rt.filterMode = filterMode;
-            rt.wrapMode = TextureWrapMode.Clamp;
-            rt.antiAliasing = Mathf.Max(antiAliasing, 1);
-            rt.useMipMap = aUseMipMap;
+            RenderTexture rt = new(width, height, 0, format, readWrite)
+            {
+                hideFlags = HideFlags.DontSave,
+                name = name,
+                filterMode = filterMode,
+                wrapMode = TextureWrapMode.Clamp,
+                antiAliasing = Mathf.Max(antiAliasing, 1),
+                useMipMap = aUseMipMap
+            };
             rt.Create();
 
             return rt;
@@ -153,17 +154,17 @@ namespace AmplifyOcclusion
                 aTarget.height = aTarget.fullHeight;
             }
 
-            aTarget.oneOverWidth = 1.0f / (float)aTarget.width;
-            aTarget.oneOverHeight = 1.0f / (float)aTarget.height;
+            aTarget.oneOverWidth = 1.0f / aTarget.width;
+            aTarget.oneOverHeight = 1.0f / aTarget.height;
 
             float fovRad = aCamera.fieldOfView * Mathf.Deg2Rad;
 
             float invHalfTanFov = 1.0f / Mathf.Tan(fovRad * 0.5f);
 
-            Vector2 focalLen = new Vector2(invHalfTanFov * (aTarget.height / (float)aTarget.width),
+            Vector2 focalLen = new(invHalfTanFov * (aTarget.height / (float)aTarget.width),
                                             invHalfTanFov);
 
-            Vector2 invFocalLen = new Vector2(1.0f / focalLen.x, 1.0f / focalLen.y);
+            Vector2 invFocalLen = new(1.0f / focalLen.x, 1.0f / focalLen.y);
 
             // Aspect Ratio
             cb.SetGlobalVector(PropertyID._AO_UVToView, new Vector4(+2.0f * invFocalLen.x,
@@ -171,20 +172,14 @@ namespace AmplifyOcclusion
                                                                       -1.0f * invFocalLen.x,
                                                                       -1.0f * invFocalLen.y));
 
-            float projScale;
-
-            if (aCamera.orthographic)
-                projScale = ((float)aTarget.fullHeight) / aCamera.orthographicSize;
-            else
-                projScale = ((float)aTarget.fullHeight) / (Mathf.Tan(fovRad * 0.5f) * 2.0f);
-
+            float projScale = aCamera.orthographic ? aTarget.fullHeight / aCamera.orthographicSize : aTarget.fullHeight / (Mathf.Tan(fovRad * 0.5f) * 2.0f);
             if ((isDownsample == true) || (isFilterDownsample == true))
             {
                 projScale = projScale * 0.5f * 0.5f;
             }
             else
             {
-                projScale = projScale * 0.5f;
+                projScale *= 0.5f;
             }
 
             cb.SetGlobalFloat(PropertyID._AO_HalfProjScale, projScale);

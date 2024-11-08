@@ -1,7 +1,6 @@
 // Amplify Occlusion 2 - Robust Ambient Occlusion for Unity
 // Copyright (c) Amplify Creations, Lda <info@amplify.pt>
 
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -20,7 +19,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
     private int m_myID;
     private string m_myIDstring;
 
-    private float m_oneOverDepthScale = (1.0f / 65504.0f); // 65504.0f max half float
+    private readonly float m_oneOverDepthScale = (1.0f / 65504.0f); // 65504.0f max half float
 
     public enum ApplicationMethod
     {
@@ -154,16 +153,16 @@ public class AmplifyOcclusionEffect : MonoBehaviour
 
     private Camera m_targetCamera = null;
 
-    private RenderTargetIdentifier[] applyDebugTargetsTemporal = new RenderTargetIdentifier[2];
-    private RenderTargetIdentifier[] applyDeferredTargets_Log_Temporal = new RenderTargetIdentifier[3];
-    private RenderTargetIdentifier[] applyDeferredTargetsTemporal = new RenderTargetIdentifier[3];
-    private RenderTargetIdentifier[] applyOcclusionTemporal = new RenderTargetIdentifier[2];
-    private RenderTargetIdentifier[] applyPostEffectTargetsTemporal = new RenderTargetIdentifier[2];
+    private readonly RenderTargetIdentifier[] applyDebugTargetsTemporal = new RenderTargetIdentifier[2];
+    private readonly RenderTargetIdentifier[] applyDeferredTargets_Log_Temporal = new RenderTargetIdentifier[3];
+    private readonly RenderTargetIdentifier[] applyDeferredTargetsTemporal = new RenderTargetIdentifier[3];
+    private readonly RenderTargetIdentifier[] applyOcclusionTemporal = new RenderTargetIdentifier[2];
+    private readonly RenderTargetIdentifier[] applyPostEffectTargetsTemporal = new RenderTargetIdentifier[2];
 
     // NOTE: MotionVectors are not supported in Deferred Injection mode due to 1 frame delay
-    private bool UsingTemporalFilter { get { return (m_sampleStep > 0) && (FilterEnabled == true) && (m_targetCamera.cameraType != UnityEngine.CameraType.SceneView); } }
-    private bool UsingMotionVectors { get { return UsingTemporalFilter && (ApplyMethod != ApplicationMethod.Deferred); } }
-    private bool UsingFilterDownsample { get { return (Downsample == true) && (FilterDownsample == true) && (UsingTemporalFilter == true); } }
+    private bool UsingTemporalFilter => (m_sampleStep > 0) && (FilterEnabled == true) && (m_targetCamera.cameraType != UnityEngine.CameraType.SceneView);
+    private bool UsingMotionVectors => UsingTemporalFilter && (ApplyMethod != ApplicationMethod.Deferred);
+    private bool UsingFilterDownsample => (Downsample == true) && (FilterDownsample == true) && (UsingTemporalFilter == true);
 
     private bool useMRTBlendingFallback = false;
     private bool checkedforMRTBlendingFallback = false;
@@ -189,8 +188,10 @@ public class AmplifyOcclusionEffect : MonoBehaviour
 
         aCmdBuffer.cmdBufferName = aCmdBufferName;
 
-        aCmdBuffer.cmdBuffer = new CommandBuffer();
-        aCmdBuffer.cmdBuffer.name = aCmdBufferName;
+        aCmdBuffer.cmdBuffer = new CommandBuffer
+        {
+            name = aCmdBufferName
+        };
 
         aCmdBuffer.cmdBufferEvent = aCameraEvent;
 
@@ -215,21 +216,23 @@ public class AmplifyOcclusionEffect : MonoBehaviour
     }
 
     // Quad Mesh
-    static private Mesh m_quadMesh = null;
+    private static Mesh m_quadMesh = null;
 
     private void createQuadMesh()
     {
         if (m_quadMesh == null)
         {
-            m_quadMesh = new Mesh();
-            m_quadMesh.vertices = new Vector3[4] { new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 1, 0), new Vector3(1, 0, 0) };
-            m_quadMesh.uv = new Vector2[4] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0) };
-            m_quadMesh.triangles = new int[6] { 0, 1, 2, 0, 2, 3 };
+            m_quadMesh = new Mesh
+            {
+                vertices = [new(0, 0, 0), new(0, 1, 0), new(1, 1, 0), new(1, 0, 0)],
+                uv = [new(0, 0), new(0, 1), new(1, 1), new(1, 0)],
+                triangles = [0, 1, 2, 0, 2, 3],
 
-            m_quadMesh.normals = new Vector3[0];
-            m_quadMesh.tangents = new Vector4[0];
-            m_quadMesh.colors32 = new Color32[0];
-            m_quadMesh.colors = new Color[0];
+                normals = [],
+                tangents = [],
+                colors32 = [],
+                colors = []
+            };
         }
     }
 
@@ -240,9 +243,9 @@ public class AmplifyOcclusionEffect : MonoBehaviour
     }
 
     // Render Materials
-    static private Material m_occlusionMat = null;
-    static private Material m_blurMat = null;
-    static private Material m_applyOcclusionMat = null;
+    private static Material m_occlusionMat = null;
+    private static Material m_blurMat = null;
+    private static Material m_applyOcclusionMat = null;
 
     private void checkMaterials(bool aThroughErrorMsg)
     {
@@ -274,9 +277,9 @@ public class AmplifyOcclusionEffect : MonoBehaviour
     }
 
     private RenderTextureFormat m_occlusionRTFormat = RenderTextureFormat.RGHalf;
-    private RenderTextureFormat m_accumTemporalRTFormat = RenderTextureFormat.ARGB32;
-    private RenderTextureFormat m_temporaryEmissionRTFormat = RenderTextureFormat.ARGB2101010;
-    private RenderTextureFormat m_motionIntensityRTFormat = RenderTextureFormat.R8;
+    private readonly RenderTextureFormat m_accumTemporalRTFormat = RenderTextureFormat.ARGB32;
+    private readonly RenderTextureFormat m_temporaryEmissionRTFormat = RenderTextureFormat.ARGB2101010;
+    private readonly RenderTextureFormat m_motionIntensityRTFormat = RenderTextureFormat.R8;
 
 
     private bool checkRenderTextureFormats()
@@ -333,8 +336,8 @@ public class AmplifyOcclusionEffect : MonoBehaviour
                 else
                 {
                     // AO-62 - some OpenGLES devices actually implement RFloat buffers using RHalf format.
-                    if ((SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ||
-                        (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3))
+                    if (SystemInfo.graphicsDeviceType is GraphicsDeviceType.OpenGLES2 or
+                        GraphicsDeviceType.OpenGLES3)
                     {
                         CacheAware = false;
                         UnityEngine.Debug.LogWarningFormat("[AmplifyOcclusion] CacheAware is not supported on {0} devices. CacheAware will be disabled.", SystemInfo.graphicsDeviceType);
@@ -481,14 +484,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
 
         if (m_temporalAccumRT == null && FilterEnabled)
         {
-            if (AmplifyOcclusionCommon.IsStereoMultiPassEnabled(m_targetCamera) == true)
-            {
-                m_temporalAccumRT = new RenderTexture[4];
-            }
-            else
-            {
-                m_temporalAccumRT = new RenderTexture[2];
-            }
+            m_temporalAccumRT = AmplifyOcclusionCommon.IsStereoMultiPassEnabled(m_targetCamera) == true ? (new RenderTexture[4]) : (new RenderTexture[2]);
 
             for (int i = 0; i < m_temporalAccumRT.Length; i++)
             {
@@ -515,8 +511,8 @@ public class AmplifyOcclusionEffect : MonoBehaviour
                                                                     1,
                                                                     true);
 
-            int minSize = (int)Mathf.Min(m_target.fullWidth, m_target.fullHeight);
-            m_numberMips = (int)(Mathf.Log((float)minSize, 2.0f) + 1.0f) - 1;
+            int minSize = Mathf.Min(m_target.fullWidth, m_target.fullHeight);
+            m_numberMips = (int)(Mathf.Log(minSize, 2.0f) + 1.0f) - 1;
 
             m_tmpMipString = null;
             m_tmpMipString = new string[m_numberMips];
@@ -583,7 +579,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
         {
             if (m_targetCamera.actualRenderingPath != RenderingPath.DeferredShading)
             {
-                if (PerPixelNormals != PerPixelNormalSource.None && PerPixelNormals != PerPixelNormalSource.Camera)
+                if (PerPixelNormals is not PerPixelNormalSource.None and not PerPixelNormalSource.Camera)
                 {
                     m_paramsChanged = true;
                     PerPixelNormals = PerPixelNormalSource.Camera;
@@ -789,7 +785,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
         }
         if (m_temporalAccumRT != null)
         {
-            foreach (var rt in m_temporalAccumRT)
+            foreach (RenderTexture rt in m_temporalAccumRT)
             {
                 rt.MarkRestoreExpected();
             }
@@ -811,14 +807,14 @@ public class AmplifyOcclusionEffect : MonoBehaviour
     {
         cb.BeginSample("AO 1 - ComputeOcclusion");
 
-        if ((PerPixelNormals == PerPixelNormalSource.GBuffer) ||
-            (PerPixelNormals == PerPixelNormalSource.GBufferOctaEncoded))
+        if (PerPixelNormals is PerPixelNormalSource.GBuffer or
+            PerPixelNormalSource.GBufferOctaEncoded)
         {
             cb.SetGlobalTexture(PropertyID._AO_GBufferNormals, BuiltinRenderTextureType.GBuffer2);
         }
 
-        Vector4 oneOverFullSize_Size = new Vector4(1.0f / (float)m_target.fullWidth,
-                                                    1.0f / (float)m_target.fullHeight,
+        Vector4 oneOverFullSize_Size = new(1.0f / m_target.fullWidth,
+                                                    1.0f / m_target.fullHeight,
                                                     m_target.fullWidth,
                                                     m_target.fullHeight);
 
@@ -928,8 +924,8 @@ public class AmplifyOcclusionEffect : MonoBehaviour
             }
             else
             {
-                cb.SetGlobalVector(PropertyID._AO_Target_TexelSize, new Vector4(1.0f / (float)m_target.width,
-                                                                                  1.0f / (float)m_target.height,
+                cb.SetGlobalVector(PropertyID._AO_Target_TexelSize, new Vector4(1.0f / m_target.width,
+                                                                                  1.0f / m_target.height,
                                                                                   m_target.width,
                                                                                   m_target.height));
             }
@@ -1052,16 +1048,16 @@ public class AmplifyOcclusionEffect : MonoBehaviour
     }
 
     private readonly RenderTargetIdentifier[] m_applyDeferredTargets =
-    {
+    [
         BuiltinRenderTextureType.GBuffer0,		// RGB: Albedo, A: Occ
 		BuiltinRenderTextureType.CameraTarget,	// RGB: Emission, A: None
-	};
+	];
 
     private readonly RenderTargetIdentifier[] m_applyDeferredTargets_Log =
-    {
+    [
         BuiltinRenderTextureType.GBuffer0,		// RGB: Albedo, A: Occ
 		BuiltinRenderTextureType.GBuffer3		// RGB: Emission, A: None
-	};
+	];
 
     void commandBuffer_FillApplyDeferred(CommandBuffer cb, bool logTarget)
     {
@@ -1120,7 +1116,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
                 {
                     // UsingFilterDownsample == true
 
-                    RenderTargetIdentifier temporalRTid = new RenderTargetIdentifier(m_temporalAccumRT[m_curTemporalIdx]);
+                    RenderTargetIdentifier temporalRTid = new(m_temporalAccumRT[m_curTemporalIdx]);
 
                     cb.SetRenderTarget(temporalRTid);
                     PerformBlit(cb, m_occlusionMat, ShaderPass.Temporal + getTemporalPass());
@@ -1185,7 +1181,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
                 {
                     // UsingFilterDownsample == true
 
-                    RenderTargetIdentifier temporalRTid = new RenderTargetIdentifier(m_temporalAccumRT[m_curTemporalIdx]);
+                    RenderTargetIdentifier temporalRTid = new(m_temporalAccumRT[m_curTemporalIdx]);
 
                     cb.SetRenderTarget(temporalRTid);
                     PerformBlit(cb, m_occlusionMat, ShaderPass.Temporal + getTemporalPass());
@@ -1264,7 +1260,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
             {
                 // UsingFilterDownsample == true
 
-                RenderTargetIdentifier temporalRTid = new RenderTargetIdentifier(m_temporalAccumRT[m_curTemporalIdx]);
+                RenderTargetIdentifier temporalRTid = new(m_temporalAccumRT[m_curTemporalIdx]);
 
                 cb.SetRenderTarget(temporalRTid);
                 PerformBlit(cb, m_occlusionMat, ShaderPass.Temporal + getTemporalPass());
@@ -1319,7 +1315,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
             {
                 // UsingFilterDownsample == true
 
-                RenderTargetIdentifier temporalRTid = new RenderTargetIdentifier(m_temporalAccumRT[m_curTemporalIdx]);
+                RenderTargetIdentifier temporalRTid = new(m_temporalAccumRT[m_curTemporalIdx]);
 
                 cb.SetRenderTarget(temporalRTid);
                 PerformBlit(cb, m_occlusionMat, ShaderPass.Temporal + getTemporalPass());
@@ -1346,7 +1342,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
         cb.EndSample("AO 3 - ApplyDebug");
     }
 
-    private TargetDesc m_target = new TargetDesc();
+    private TargetDesc m_target = new();
 
     void UpdateGlobalShaderConstants(CommandBuffer cb)
     {
@@ -1403,7 +1399,7 @@ public class AmplifyOcclusionEffect : MonoBehaviour
         }
     }
 
-    AmplifyOcclusionViewProjMatrix m_viewProjMatrix = new AmplifyOcclusionViewProjMatrix();
+    readonly AmplifyOcclusionViewProjMatrix m_viewProjMatrix = new();
     void UpdateGlobalShaderConstants_Matrices(CommandBuffer cb)
     {
         m_viewProjMatrix.UpdateGlobalShaderConstants_Matrices(cb, m_targetCamera, UsingTemporalFilter);

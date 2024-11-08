@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using HarmonyLib;
+﻿using HarmonyLib;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR;
@@ -129,10 +129,10 @@ namespace SubmersedVR
         internal static void Serialize(GameSettings.ISerializer serializer)
         {
             string ns = nameof(SubmersedVR);
-            foreach (var p in typeof(Settings).GetFields(BindingFlags.Static | BindingFlags.Public))
+            foreach (FieldInfo p in typeof(Settings).GetFields(BindingFlags.Static | BindingFlags.Public))
             {
                 string name = p.Name;
-                var value = p.GetValue(null);
+                object value = p.GetValue(null);
                 switch (value)
                 {
                     case bool val:
@@ -162,9 +162,9 @@ namespace SubmersedVR
             int tab = panel.AddTab("Submersed VR");
 
             panel.AddHeading(tab, "Controls");
-            panel.AddChoiceOption<string>(tab, "Movement Mode", new string[] { "Head Based", "Right Hand Based", "Left Hand Based" }, HandBasedTurning ? (LeftHandBasedTurning ? "Left Hand Based" : "Right Hand Based") : "Head Based", (value) =>
+            panel.AddChoiceOption<string>(tab, "Movement Mode", ["Head Based", "Right Hand Based", "Left Hand Based"], HandBasedTurning ? (LeftHandBasedTurning ? "Left Hand Based" : "Right Hand Based") : "Head Based", (value) =>
             {
-                HandBasedTurning = value == "Right Hand Based" || value == "Left Hand Based";
+                HandBasedTurning = value is "Right Hand Based" or "Left Hand Based";
                 LeftHandBasedTurning = value == "Left Hand Based";
             });
             panel.AddToggleOption(tab, "Enable Snap Turning", IsSnapTurningEnabled, (value) =>
@@ -175,7 +175,7 @@ namespace SubmersedVR
                     IsSnapTurningEnabledChanged(value);
                 }
             });
-            panel.AddChoiceOption<float>(tab, "Snap Turning Angle(°)", new float[] { 22.5f, 30f, 45f, 90f }, SnapTurningAngle, (value) =>
+            panel.AddChoiceOption<float>(tab, "Snap Turning Angle(°)", [22.5f, 30f, 45f, 90f], SnapTurningAngle, (value) =>
             {
                 SnapTurningAngle = value;
                 if (SnapTurningAngleChanged != null)
@@ -191,7 +191,7 @@ namespace SubmersedVR
                     IsExosuitSnapTurningEnabledChanged(value);
                 }
             });
-            panel.AddChoiceOption<float>(tab, "Prawn Suit Snap Turning Angle(°)", new float[] { 22.5f, 30f, 45f, 90f }, ExosuitSnapTurningAngle, (value) =>
+            panel.AddChoiceOption<float>(tab, "Prawn Suit Snap Turning Angle(°)", [22.5f, 30f, 45f, 90f], ExosuitSnapTurningAngle, (value) =>
             {
                 ExosuitSnapTurningAngle = value;
                 if (ExosuitSnapTurningAngleChanged != null)
@@ -205,7 +205,7 @@ namespace SubmersedVR
             panel.AddToggleOption(tab, "Enable Game Haptics", AreGameHapticsEnabled, (value) => { AreGameHapticsEnabled = value; }, "Enable controller vibration while interacting with world objects.");
             panel.AddToggleOption(tab, "Enable UI Haptics", AreUIHapticsEnabled, (value) => { AreUIHapticsEnabled = value; }, "Enable controller vibration while interacting with the User Interface.");
             panel.AddToggleOption(tab, "Put survival meter on left wrist", PutBarsOnWrist, (value) => { PutBarsOnWrist = value; PutBarsOnWristChanged(value); });
-            panel.AddChoiceOption<string>(tab, "Show Laser Pointer", new string[] { "Always", "Default", "Never" }, ShowLaserPointer, (value) =>
+            panel.AddChoiceOption<string>(tab, "Show Laser Pointer", ["Always", "Default", "Never"], ShowLaserPointer, (value) =>
             {
                 ShowLaserPointer = value;
             });
@@ -298,7 +298,7 @@ namespace SubmersedVR
             string space = "   ";
             panel.AddHeading(tab, "Ambient Occlusion");
             panel.AddToggleOption(tab, space + "Enable", AOEnabled, (value) => { AOEnabled = AmbientOcclusionVR.enabled = value; AmbientOcclusionSettingsChanged(); }, "Use ambient occlusion. Increases demand on GPU.");
-            panel.AddChoiceOption<string>(tab, space + "Method", new string[] { "Post Effect", "Deferred", "Debug" }, AOMethod, (value) =>
+            panel.AddChoiceOption<string>(tab, space + "Method", ["Post Effect", "Deferred", "Debug"], AOMethod, (value) =>
             {
                 AOMethod = value;
                 if (AmbientOcclusionSettingsChanged != null)
@@ -306,7 +306,7 @@ namespace SubmersedVR
                     AmbientOcclusionSettingsChanged();
                 }
             });
-            panel.AddChoiceOption<string>(tab, space + "Sample Count", new string[] { "Low", "Medium", "High", "Very High" }, AOSampleCount, (value) =>
+            panel.AddChoiceOption<string>(tab, space + "Sample Count", ["Low", "Medium", "High", "Very High"], AOSampleCount, (value) =>
             {
                 AOSampleCount = value;
                 if (AmbientOcclusionSettingsChanged != null)
@@ -314,7 +314,7 @@ namespace SubmersedVR
                     AmbientOcclusionSettingsChanged();
                 }
             });
-            panel.AddChoiceOption<string>(tab, space + "Per Pixel Normals", new string[] { "None", "Camera", "GBuffer", "Octa" }, AOPerPixelNormals, (value) =>
+            panel.AddChoiceOption<string>(tab, space + "Per Pixel Normals", ["None", "Camera", "GBuffer", "Octa"], AOPerPixelNormals, (value) =>
             {
                 AOPerPixelNormals = value;
                 if (AmbientOcclusionSettingsChanged != null)
@@ -434,14 +434,7 @@ namespace SubmersedVR
         static bool Prefix(ref bool __result)
         {
             //If The into is playing then do not disable animations
-            if (uGUI.isIntro)
-            {
-                __result = false;
-            }
-            else
-            {
-                __result = !VROptions.enableCinematics;
-            }
+            __result = uGUI.isIntro ? false : !VROptions.enableCinematics;
             return false;
         }
     }

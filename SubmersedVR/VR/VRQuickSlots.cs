@@ -1,13 +1,13 @@
-using UnityEngine;
-using System.Linq;
 using HarmonyLib;
+using System.Linq;
+using UnityEngine;
 
 namespace SubmersedVR
 {
     extern alias SteamVRActions;
     extern alias SteamVRRef;
-    using SteamVRRef.Valve.VR;
     using SteamVRActions.Valve.VR;
+    using SteamVRRef.Valve.VR;
 
     // This class implements a way to switch between tools on the quickbar using a radial menu.
     // It was inspired by the Inventory/Quick Select form Half Life: Alyx.
@@ -27,13 +27,7 @@ namespace SubmersedVR
         private int currentSlot = -2;
         private Canvas canvas;
 
-        private int nSlots
-        {
-            get
-            {
-                return icons.Length;
-            }
-        }
+        private int nSlots => icons.Length;
 
         void Awake()
         {
@@ -48,7 +42,7 @@ namespace SubmersedVR
 
         new void Start()
         {
-            var qs = FindObjectsOfType<uGUI_QuickSlots>().First(obj => obj.name == "QuickSlots");
+            uGUI_QuickSlots qs = FindObjectsOfType<uGUI_QuickSlots>().First(obj => obj.name == "QuickSlots");
             Mod.logger.LogDebug($"[nameof{this.GetType()}] Start, stealing stuff from on {qs.name}");
             materialBackground = qs.materialBackground;
             spriteLeft = qs.spriteLeft;
@@ -81,7 +75,7 @@ namespace SubmersedVR
             base.OnSelect(slotID);
             if (slotID >= 0)
             {
-                var pos = CirclePosition(slotID, nSlots, radius);
+                Vector2 pos = CirclePosition(slotID, nSlots, radius);
                 selector.rectTransform.anchoredPosition = new Vector3(pos.x, pos.y, 0);
             }
         }
@@ -90,7 +84,7 @@ namespace SubmersedVR
         {
             for (int i = 0; i < nSlots; i++)
             {
-                var pos = CirclePosition(i, nSlots, radius);
+                Vector2 pos = CirclePosition(i, nSlots, radius);
                 icons[i].rectTransform.anchoredPosition = new Vector3(pos.x, pos.y, 0);
                 backgrounds[i].rectTransform.anchoredPosition = new Vector3(pos.x, pos.y, 0);
             }
@@ -111,22 +105,22 @@ namespace SubmersedVR
             }
             if (active)
             {
-                var from = controllerTarget.position;
-                var origin = transform.position;
-                var pX = Vector3.Dot(from - origin, transform.right);
-                var pY = Vector3.Dot(from - origin, transform.up);
-                var projected = new Vector2(pX, pY);
+                Vector3 from = controllerTarget.position;
+                Vector3 origin = transform.position;
+                float pX = Vector3.Dot(from - origin, transform.right);
+                float pY = Vector3.Dot(from - origin, transform.up);
+                Vector2 projected = new(pX, pY);
 
                 // var relPos = transform.position - controllerTarget.position;
-                var angle = Mathf.Atan2(projected.y, projected.x);
+                float angle = Mathf.Atan2(projected.y, projected.x);
                 angle += angleOffset;
                 if (angle < 0.0f)
                 {
                     angle += 2 * Mathf.PI;
                 }
 
-                var distance = projected.sqrMagnitude;
-                var doSwitch = distance > threshold;
+                float distance = projected.sqrMagnitude;
+                bool doSwitch = distance > threshold;
                 // TODO: Probably should use events to determine current slot, extending interface methods
                 if (doSwitch)
                 {
@@ -134,7 +128,7 @@ namespace SubmersedVR
                     currentSlot = DetermineSlot(angle);
                     if (currentSlot != lastSlot)
                     {
-                        var targetSlots = GetTarget();
+                        IQuickSlots targetSlots = GetTarget();
                         if (targetSlots == null)
                         {
                             return;
@@ -145,7 +139,7 @@ namespace SubmersedVR
                 }
                 else
                 {
-                    var targetSlots = GetTarget();
+                    IQuickSlots targetSlots = GetTarget();
                     if (targetSlots == null)
                     {
                         return;
@@ -171,7 +165,7 @@ namespace SubmersedVR
             base.Update(); // This updates the battery values.
 
             // TODO: This still could use some tweaking, maybe just align with the controller
-            var targetPos = VRCameraRig.instance.uiCamera.transform.position;
+            Vector3 targetPos = VRCameraRig.instance.uiCamera.transform.position;
             SteamVR_Actions.subnautica_HapticsRight.Execute(0.0f, 0.1f, 10f, 0.5f, SteamVR_Input_Sources.Any);
 
             // Don't rotate the wheel up/down when not in vehicle.

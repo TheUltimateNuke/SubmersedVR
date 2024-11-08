@@ -1,13 +1,12 @@
 using HarmonyLib;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.XR;
 using System.Collections;
-using UWE;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using System.IO;
+using UnityEngine.UI;
+using UnityEngine.XR;
+using UWE;
 
 /*
 The VRCamera Rig handles the controllers together with their laser pointers to control the UI.
@@ -17,8 +16,8 @@ namespace SubmersedVR
 {
     extern alias SteamVRActions;
     extern alias SteamVRRef;
-    using SteamVRRef.Valve.VR;
     using SteamVRActions.Valve.VR;
+    using SteamVRRef.Valve.VR;
 
     class VRCameraRig : MonoBehaviour
     {
@@ -50,42 +49,19 @@ namespace SubmersedVR
         public float worldTargetDistance;
         public Transform rigParentTarget;
 
-        public Camera UIControllerCamera
-        {
-            get
-            {
-                if (laserPointerUI == null)
-                {
-                    return null;
-                }
-                return laserPointerUI.eventCamera;
-            }
-        }
-        public Camera WorldControllerCamera
-        {
-            get
-            {
-                if (laserPointer == null)
-                {
-                    return null;
-                }
-                return laserPointer.eventCamera;
-            }
-        }
+        public Camera UIControllerCamera => laserPointerUI == null ? null : laserPointerUI.eventCamera;
+        public Camera WorldControllerCamera => laserPointer == null ? null : laserPointer.eventCamera;
 
         private FPSInputModule fpsInput = null;
 
         // This transfroms forward vector determines where the equiped tool will be aiming
-        public static readonly TransformOffset DefaultTargetTransform = new TransformOffset(Vector3.zero, new Vector3(45, 0, 0));
+        public static readonly TransformOffset DefaultTargetTransform = new(Vector3.zero, new Vector3(45, 0, 0));
         private TransformOffset _targetTransform;
         public VRQuickSlots VrQuickSlots;
 
         public TransformOffset TargetTransform
         {
-            get
-            {
-                return _targetTransform;
-            }
+            get => _targetTransform;
             set
             {
                 _targetTransform = value;
@@ -117,7 +93,7 @@ namespace SubmersedVR
 
             leftController.SetActive(false);
             rightController.SetActive(false);
-            var controller = leftController.AddComponent<SteamVRRef.Valve.VR.SteamVR_Behaviour_Pose>();
+            Valve.VR.SteamVR_Behaviour_Pose controller = leftController.AddComponent<SteamVRRef.Valve.VR.SteamVR_Behaviour_Pose>();
             controller.inputSource = SteamVRRef.Valve.VR.SteamVR_Input_Sources.LeftHand;
             controller.poseAction = SteamVRActions.Valve.VR.SteamVR_Actions.subnautica_LeftHandPose;
             controller = rightController.AddComponent<SteamVRRef.Valve.VR.SteamVR_Behaviour_Pose>();
@@ -129,7 +105,7 @@ namespace SubmersedVR
             leftHandTarget = new GameObject(nameof(leftHandTarget)).WithParent(leftController);
             rightHandTarget = new GameObject(nameof(rightHandTarget)).WithParent(rightController);
             leftHandTarget.transform.localEulerAngles = new Vector3(270, 90, 0);
-            Vector3 handOffset = new Vector3(90, 270, 0);
+            Vector3 handOffset = new(90, 270, 0);
             rightHandTarget.transform.localEulerAngles = handOffset;
 
             // Laser Pointer Setup
@@ -198,7 +174,7 @@ namespace SubmersedVR
             modelL = new GameObject(nameof(modelL)).WithParent(leftControllerUI).ResetTransform();
             modelR = new GameObject(nameof(modelR)).WithParent(rightControllerUI).ResetTransform();
 
-            var model = modelR.AddComponent<SteamVRRef.Valve.VR.SteamVR_RenderModel>();
+            Valve.VR.SteamVR_RenderModel model = modelR.AddComponent<SteamVRRef.Valve.VR.SteamVR_RenderModel>();
             model.SetInputSource(SteamVRRef.Valve.VR.SteamVR_Input_Sources.RightHand);
             model = modelL.AddComponent<SteamVRRef.Valve.VR.SteamVR_RenderModel>();
             model.SetInputSource(SteamVRRef.Valve.VR.SteamVR_Input_Sources.LeftHand);
@@ -210,7 +186,7 @@ namespace SubmersedVR
 
         public void UpdateShowControllers()
         {
-            var inMainMenu = !uGUI.isMainLevel;
+            bool inMainMenu = !uGUI.isMainLevel;
             bool alwaysShow = Settings.AlwaysShowControllers;
             modelL?.SetActive(alwaysShow || inMainMenu);
             modelR?.SetActive(alwaysShow || inMainMenu);
@@ -259,9 +235,9 @@ namespace SubmersedVR
                 // Maybe it is because the tracking was once disabled in the main game, but I am not sure, since I tried enabling it too.
                 // Copying the properties from the main camera and setting up the original important properties fixed it.
                 uiRig.transform.position = Vector3.zero;
-                var oldMask = camera.cullingMask;
-                var oldClear = camera.clearFlags;
-                var oldDepth = camera.depth;
+                int oldMask = camera.cullingMask;
+                CameraClearFlags oldClear = camera.clearFlags;
+                float oldDepth = camera.depth;
 
                 camera.CopyFrom(SNCameraRoot.main.mainCamera);
                 camera.transform.localPosition = Vector3.zero;
@@ -294,10 +270,10 @@ namespace SubmersedVR
         void SetupPDA()
         {
             // Move the quickslots to bottom of PDA bottom left and make it bigger
-            var pda = uGUI_PDA.main;
-            var targetParent = pda.tabInventory.transform;
-            var qs = FindObjectOfType<uGUI_QuickSlots>();
-            var qstf = qs.transform;
+            uGUI_PDA pda = uGUI_PDA.main;
+            Transform targetParent = pda.tabInventory.transform;
+            uGUI_QuickSlots qs = FindObjectOfType<uGUI_QuickSlots>();
+            Transform qstf = qs.transform;
 
             qstf.parent = targetParent;
             qstf.localPosition = new Vector3(-250, -455, 4f);
@@ -305,17 +281,14 @@ namespace SubmersedVR
             qstf.localRotation = Quaternion.identity;
 
             // Add Pasuse Menu Button to PDA to PDA
-            var dialog = pda.GetComponentInChildren<uGUI_Dialog>(true);
-            var buttonPrefab = dialog.buttonPrefab;
-            var button = Object.Instantiate(buttonPrefab, targetParent).GetComponent<uGUI_DialogButton>();
+            uGUI_Dialog dialog = pda.GetComponentInChildren<uGUI_Dialog>(true);
+            uGUI_DialogButton buttonPrefab = dialog.buttonPrefab;
+            uGUI_DialogButton button = Object.Instantiate(buttonPrefab, targetParent).GetComponent<uGUI_DialogButton>();
             button.button.transform.parent = targetParent;
             button.button.gameObject.gameObject.name = "PauseMenuButton";
             button.text.text = "Pause Menu";
             button.button.onClick.RemoveAllListeners();
-            button.button.onClick.AddListener(() =>
-            {
-                IngameMenu.main.Open();
-            });
+            button.button.onClick.AddListener(IngameMenu.main.Open);
             // Move it to the bottom right
             button.rectTransform.anchoredPosition = new Vector2(1100, 50);
             button.rectTransform.pivot = new Vector2(1, 0);
@@ -327,7 +300,7 @@ namespace SubmersedVR
 
         public IEnumerator SetupGameCameras()
         {
-            var rig = VRCameraRig.instance;
+            VRCameraRig rig = VRCameraRig.instance;
             rig.StealCamera(SNCameraRoot.main.mainCamera);
             yield return new WaitForSeconds(1.0f);
             rig.StealUICamera(SNCameraRoot.main.guiCamera, true);
@@ -447,7 +420,7 @@ namespace SubmersedVR
         public static void Postfix()
         {
             // TODO: Should use proper singleton pattern?
-            var rig = new GameObject(nameof(VRCameraRig)).AddComponent<VRCameraRig>();
+            VRCameraRig rig = new GameObject(nameof(VRCameraRig)).AddComponent<VRCameraRig>();
             VRCameraRig.instance = rig;
             Object.DontDestroyOnLoad(rig);
         }
@@ -465,21 +438,9 @@ namespace SubmersedVR
             {
                 return true;
             }
-            if (!(SNCameraRoot.main != null))
-            {
-                __result = VRCameraRig.instance.UIControllerCamera;
-            }
-            else
-            {
-                if (__instance.guiCameraSpace)
-                {
-                    __result = VRCameraRig.instance.UIControllerCamera;
-                }
-                else
-                {
-                    __result = VRCameraRig.instance.WorldControllerCamera;
-                }
-            }
+            __result = !(SNCameraRoot.main != null)
+                ? VRCameraRig.instance.UIControllerCamera
+                : __instance.guiCameraSpace ? VRCameraRig.instance.UIControllerCamera : VRCameraRig.instance.WorldControllerCamera;
             return false;
         }
     }
@@ -494,7 +455,7 @@ namespace SubmersedVR
         public static bool Prefix(GraphicRaycaster __instance, ref Camera __result)
         {
             // TODO: Clean this up
-            var canvas = __instance.GetComponent<Canvas>();
+            Canvas canvas = __instance.GetComponent<Canvas>();
             if (canvas == null)
             {
                 return true;
@@ -524,12 +485,12 @@ namespace SubmersedVR
             }
             if (VRCameraRig.instance == null)
                 return;
-            var rigWorldPos = SNCameraRoot.main.transform;
+            Transform rigWorldPos = SNCameraRoot.main.transform;
 
-            var worldPos = __instance._anchor.transform.position;
-            var worldRot = __instance._anchor.transform.rotation;
-            var uiSpacePos = worldPos - rigWorldPos.position;
-            var uiSpaceRotation = worldRot;
+            Vector3 worldPos = __instance._anchor.transform.position;
+            Quaternion worldRot = __instance._anchor.transform.rotation;
+            Vector3 uiSpacePos = worldPos - rigWorldPos.position;
+            Quaternion uiSpaceRotation = worldRot;
             // DebugPanel.Show($"PDA Pos/Rot: {worldPos}/{worldRot.eulerAngles}\n -> {uiSpacePos}/{uiSpaceRotation.eulerAngles}\nrigPos/rot: {rigWorldPos.position}, {rigWorldPos.eulerAngles}");
             __instance.rectTransform.position = uiSpacePos;
             __instance.rectTransform.rotation = uiSpaceRotation;
@@ -542,7 +503,7 @@ namespace SubmersedVR
     {
         public static void Postfix(IngameMenu __instance)
         {
-            var scalar = __instance.GetComponent<uGUI_CanvasScaler>();
+            uGUI_CanvasScaler scalar = __instance.GetComponent<uGUI_CanvasScaler>();
             scalar.vrMode = uGUI_CanvasScaler.Mode.Static;
         }
     }
@@ -554,7 +515,7 @@ namespace SubmersedVR
     {
         public static void Postfix(uGUI_BuilderMenu __instance)
         {
-            var scalar = __instance.GetComponent<uGUI_CanvasScaler>();
+            uGUI_CanvasScaler scalar = __instance.GetComponent<uGUI_CanvasScaler>();
             scalar.vrMode = uGUI_CanvasScaler.Mode.Static;
         }
     }
@@ -565,7 +526,7 @@ namespace SubmersedVR
     {
         public static void Postfix(uGUI_BuilderMenu __instance)
         {
-            var scalar = __instance.GetComponent<uGUI_CanvasScaler>();
+            uGUI_CanvasScaler scalar = __instance.GetComponent<uGUI_CanvasScaler>();
             scalar.SetDirty();
             scalar.UpdateTransform(SNCameraRoot.main.guiCamera);
         }
@@ -590,9 +551,9 @@ namespace SubmersedVR
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false, new CodeMatch[] {
-                new CodeMatch(ci => ci.Calls(typeof(XRDevice).GetMethod(nameof(XRDevice.DisableAutoXRCameraTracking))))
-            }).ThrowIfNotMatch("Could not find XRDevice Deactivation").Advance(-2).RemoveInstructions(3).InstructionEnumeration();
+            return new CodeMatcher(instructions).MatchForward(false, [
+                new(ci => ci.Calls(typeof(XRDevice).GetMethod(nameof(XRDevice.DisableAutoXRCameraTracking))))
+            ]).ThrowIfNotMatch("Could not find XRDevice Deactivation").Advance(-2).RemoveInstructions(3).InstructionEnumeration();
         }
     }
 

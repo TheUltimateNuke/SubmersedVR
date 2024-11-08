@@ -1,6 +1,3 @@
-using HarmonyLib;
-using UnityEngine;
-
 namespace SubmersedVR
 {
     /* Moved to VRCameraRig LateUpdate

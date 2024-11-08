@@ -1,6 +1,6 @@
+using FMOD.Studio;
 using HarmonyLib;
 using UnityEngine;
-using FMOD.Studio;
 
 namespace SubmersedVR
 {
@@ -101,7 +101,7 @@ namespace SubmersedVR
                     __instance.useRigidbody.AddTorque(__instance.transform.right * -vector.y * __instance.sidewaysTorque * 0.0015f * d, ForceMode.VelocityChange);
                     __instance.useRigidbody.AddTorque(__instance.transform.forward * -vector.x * __instance.sidewaysTorque * 0.0002f * d, ForceMode.VelocityChange);
                 }
-                else if (__instance.controlSheme == Vehicle.ControlSheme.Submarine || __instance.controlSheme == Vehicle.ControlSheme.Mech)
+                else if (__instance.controlSheme is Vehicle.ControlSheme.Submarine or Vehicle.ControlSheme.Mech)
                 {
                     //Exosuit
                     if (Settings.IsExosuitSnapTurningEnabled == true && SnapTurning.hasSnapTurn)
@@ -189,14 +189,9 @@ namespace SubmersedVR
         public static bool Prefix(MainCameraControl __instance)
         {
             float deltaTime = Time.deltaTime;
-            if (__instance.underWaterTracker.isUnderWater)
-            {
-                __instance.swimCameraAnimation = Mathf.Clamp01(__instance.swimCameraAnimation + deltaTime);
-            }
-            else
-            {
-                __instance.swimCameraAnimation = Mathf.Clamp01(__instance.swimCameraAnimation - deltaTime);
-            }
+            __instance.swimCameraAnimation = __instance.underWaterTracker.isUnderWater
+                ? Mathf.Clamp01(__instance.swimCameraAnimation + deltaTime)
+                : Mathf.Clamp01(__instance.swimCameraAnimation - deltaTime);
             float num = __instance.minimumY;
             float num2 = __instance.maximumY;
             Vector3 velocity = __instance.playerController.velocity;
@@ -228,7 +223,7 @@ namespace SubmersedVR
                 flag5 = false;
             }
             Transform transform = __instance.transform;
-            float num3 = (float)((flag || __instance.lookAroundMode || Player.main.GetMode() == Player.Mode.LockedPiloting) ? 1 : -1);
+            float num3 = (flag || __instance.lookAroundMode || Player.main.GetMode() == Player.Mode.LockedPiloting) ? 1 : -1;
             if (!flag2 || (__instance.cinematicMode && !__instance.lookAroundMode))
             {
                 __instance.cameraOffsetTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraOffsetTransform.localEulerAngles, Vector3.zero, deltaTime * 5f);
@@ -337,18 +332,11 @@ namespace SubmersedVR
             {
                 __instance.transform.localEulerAngles = Vector3.zero;
             }
-            Vector3 localEulerAngles2 = new Vector3(0f, __instance.transform.localEulerAngles.y, 0f);
+            Vector3 localEulerAngles2 = new(0f, __instance.transform.localEulerAngles.y, 0f);
             Vector3 localPosition2 = __instance.transform.localPosition;
             if (XRSettings.enabled)
             {
-                if (flag2 && !flag3)
-                {
-                    localEulerAngles2.y = __instance.viewModelLockedYaw;
-                }
-                else
-                {
-                    localEulerAngles2.y = 0f;
-                }
+                localEulerAngles2.y = flag2 && !flag3 ? __instance.viewModelLockedYaw : 0f;
                 if (!flag3 && !__instance.cinematicMode)
                 {
                     if (!flag2)

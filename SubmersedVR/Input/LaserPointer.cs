@@ -27,7 +27,7 @@ namespace SubmersedVR
 
         void Start()
         {
-            Material newMaterial = new Material(ShaderManager.preloadedShaders.DebugDisplaySolid);
+            Material newMaterial = new(ShaderManager.preloadedShaders.DebugDisplaySolid);
             newMaterial.SetColor(ShaderPropertyID._Color, Color.cyan);
 
             // Setup camera used for raycasting on canvases
@@ -99,12 +99,12 @@ namespace SubmersedVR
             {
                 return;
             }
-            var uiHitRelativeTime = Time.unscaledTime - inputModule.lastValidRaycastTime;
-            var uiHitDistance = inputModule.lastRaycastResult.distance;
-            var uiWasHit = uiHitDistance != 0 && uiHitRelativeTime < hideTimeout;
+            float uiHitRelativeTime = Time.unscaledTime - inputModule.lastValidRaycastTime;
+            float uiHitDistance = inputModule.lastRaycastResult.distance;
+            bool uiWasHit = uiHitDistance != 0 && uiHitRelativeTime < hideTimeout;
 
-            var worldHitRelativeTime = Time.unscaledTime - worldTargetTime;
-            var worldWasHit = doWorldRaycasts && worldTarget != null && worldHitRelativeTime < hideTimeout;
+            float worldHitRelativeTime = Time.unscaledTime - worldTargetTime;
+            bool worldWasHit = doWorldRaycasts && worldTarget != null && worldHitRelativeTime < hideTimeout;
 
             float length = defaultLength;
             if (uiWasHit)
