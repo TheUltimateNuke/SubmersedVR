@@ -10,7 +10,7 @@ namespace Valve.VR
 
         public static bool Initialize(string assetBundlePath)
         {
-            return loadAllShadersFromAssetBundle(assetBundlePath);
+            return LoadAllShadersFromAssetBundle(assetBundlePath);
         }
 
         public static Shader GetShader(string name)
@@ -29,7 +29,7 @@ namespace Valve.VR
             return shaders[name];
         }
 
-        private static bool loadAllShadersFromAssetBundle(string assetBundlePath)
+        private static bool LoadAllShadersFromAssetBundle(string assetBundlePath)
         {
             AssetBundle loadedAssetBundle = AssetBundle.LoadFromFile(assetBundlePath);
             Debug.Log("loadAllShadersFromAssetBundle called.");
