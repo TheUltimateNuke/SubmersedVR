@@ -4,3 +4,7 @@
 Build
 .vscode
 *.zip
+.vs
+*.sln
+bin
+obj
